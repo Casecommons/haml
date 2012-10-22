@@ -510,8 +510,17 @@ MESSAGE
     # @param text [String] The string to sanitize
     # @return [String] The sanitized string
     def html_escape(text)
-      Haml::Util.silence_warnings {text.to_s.gsub(/[\"><&]/n) {|s| HTML_ESCAPE[s]}}
+      Haml::Util.silence_warnings do
+        text.to_s.gsub(/[\"><&]/n) {|s| HTML_ESCAPE[s]}.each_char.map do |c|
+          if c =~ /[a-zA-Z0-9\"><&;]/ && c.unpack("C").first < 256
+            c
+          else
+            "&#x#{c.unpack("C").first.to_s(16)};"
+          end
+        end.join
+      end
     end
+
 
     # Escapes HTML entities in `text`, but without escaping an ampersand
     # that is already part of an escaped entity.

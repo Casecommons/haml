@@ -30,7 +30,7 @@ class HelperTest < Test::Unit::TestCase
       on(name) || []
     end
   end
-  
+
   def setup
     @base = ActionView::Base.new
     @base.controller = ActionController::Base.new
@@ -110,14 +110,14 @@ HAML
       ActionView::Base.new.render(:inline => "<%= concat('foo') %>")
     rescue ArgumentError, NameError
       proper_behavior = true
-    end    
+    end
     assert(proper_behavior)
   end
-  
+
   def test_action_view_included
     assert(Haml::Helpers.action_view?)
   end
-  
+
   def test_form_tag
     # This is usually provided by ActionController::Base.
     def @base.protect_against_forgery?; false; end
@@ -258,6 +258,11 @@ HAML
     assert_equal("<p id='foo&amp;bar'>baz</p>\n", render("%p{:id => 'foo&bar'} baz", :escape_html => true))
   end
 
+  def test_haml_tag_attribute_html_escaping_with_html
+    template = "%p{'data-html' => '<a href=\"http://example.com/foo?bar=baz\">'} baz"
+    assert_equal("<p data-html='&lt;a&#x20;href&#x3d;&#x5c;&quot;http&#x3a;&#x2f;&#x2f;example.com&#x2f;foo&#x3f;bar&#x3d;baz&#x5c;&quot;&gt;'>baz</p>\n", render(template, :escape_html => true))
+  end
+
   def test_haml_tag_autoclosed_tags_are_closed
     assert_equal("<br class='foo' />\n", render("- haml_tag :br, :class => 'foo'"))
   end
@@ -359,7 +364,7 @@ HAML
   end
 
   def test_capture_deals_properly_with_collections
-    Haml::Helpers.module_eval do 
+    Haml::Helpers.module_eval do
       def trc(collection, &block)
         collection.each do |record|
           haml_concat capture_haml(record, &block)
